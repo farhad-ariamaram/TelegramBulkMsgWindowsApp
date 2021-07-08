@@ -9,4 +9,10 @@
     <ProjectReference Include="..\TLSharp.Core\TLSharp.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="phones.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
