@@ -1,0 +1,1 @@
+﻿Scaffold-DbContext "Server=.;Database=TelegramBulkMsgDB;Trusted_Connection=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Force
