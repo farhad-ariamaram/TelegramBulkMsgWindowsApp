@@ -12,6 +12,8 @@ namespace TelegramBulkMsgWindowsApp
 {
     class Program
     {
+        static int counter = 0;
+        static int counterContact = 0;
         static async Task Main(string[] args)
         {
             TelegramBulkMsgDBContext _db = new TelegramBulkMsgDBContext();
@@ -93,9 +95,10 @@ namespace TelegramBulkMsgWindowsApp
                                 Contacts = vectorInputPhoneContact
                             });
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
                             Console.WriteLine($"add {line} to contacts failed!");
+                            Console.WriteLine(e.Message);
                         }
 
 
@@ -103,23 +106,28 @@ namespace TelegramBulkMsgWindowsApp
                         TLUser user = null;
                         try
                         {
-                            if (importedContacts.Users.Count > 0)
+                            if (importedContacts!=null)
                             {
-                                //telegram found :)
-                                user = importedContacts.Users
-                                    .Cast<TLUser>()
-                                    .SingleOrDefault();
-                                await client.SendMessageAsync(new TLInputPeerUser() { UserId = user.Id }, message);
+                                if (importedContacts.Users.Count > 0)
+                                {
+                                    //telegram found :)
+                                    user = importedContacts.Users
+                                        .Cast<TLUser>()
+                                        .SingleOrDefault();
+                                    await client.SendMessageAsync(new TLInputPeerUser() { UserId = user.Id }, message);
 
+                                }
+                                else
+                                {
+                                    //current phone has no telegram :(
+                                }
                             }
-                            else
-                            {
-                                //current phone has no telegram :(
-                            }
+                            
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
                             Console.WriteLine($"send msg to {line} failed!");
+                            Console.WriteLine(e.Message);
                         }
                         
 
@@ -146,7 +154,7 @@ namespace TelegramBulkMsgWindowsApp
                                     lastSeen = q.ToString();
                                 }
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
                                 lastSeen = "";
                             }
@@ -165,6 +173,10 @@ namespace TelegramBulkMsgWindowsApp
                         await _db.AddAsync(person);
                         await _db.SaveChangesAsync();
 
+                        if (person.HasTelegram==true)
+                        {
+                            counter++;
+                        }
 
                         //remove from contacts
                         try
@@ -182,13 +194,28 @@ namespace TelegramBulkMsgWindowsApp
                                 await client.SendRequestAsync<object>(req);
                             }
                         }
-                        catch (Exception)
+                        catch (Exception e)
                         {
                             Console.WriteLine($"remove contact {line} failed!");
                         }
-                        
 
+                        counterContact++;
                         await updateLastPhoneAsync(line);
+
+                        
+                        if (counter > 2)
+                        {
+                            await Task.Delay(60000);
+                            counter = 0;
+                        }
+
+                        if (counterContact > 48)
+                        {
+                            await Task.Delay(250000);
+                            counterContact = 0;
+                        }
+
+                        Console.WriteLine(counterContact);
                     }
                 }
 
